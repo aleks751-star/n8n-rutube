@@ -1,5 +1,4 @@
 name: CI
-
 on:
   push:
     branches: [ "main" ]
@@ -11,25 +10,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
+      # Ставим зависимости "как получится" (не ломаем пайплайн, если их нет)
       - name: Install deps (best effort)
-        run: |
-          python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt || true; fi
+        run: pip install -r requirements.txt || true
 
+      # Мини-проверка: модуль app.main импортируется — ок
       - name: Smoke import app.main
+        shell: bash
         run: |
           python - <<'PY'
-          import sys, importlib, traceback
-          try:
-              importlib.import_module("app.main")
-          except Exception:
-              traceback.print_exc()
-              sys.exit(1)
-          else:
-              print("SMOKE OK")
+          import importlib
+          importlib.import_module("app.main")
+          print("SMOKE OK")
           PY
