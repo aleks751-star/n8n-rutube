@@ -3,7 +3,9 @@
 
 ## Документация
 - [YouTube → RuTube: бизнес-логика](docs/business_logic.md)
+- [Инфраструктура проекта](docs/infrastructure.md)
 - [Журнал задач](docs/_journal.md)
 - [Инструкция агенту](README.codex.md)
 
+main
 
