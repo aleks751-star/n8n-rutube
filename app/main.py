@@ -2,38 +2,26 @@
 import os
 import time
 import datetime
-import logging
 
-# Настройки из окружения
-INTERVAL = int(os.environ.get("APP_INTERVAL", "7"))
-WORKER_ENABLED = os.environ.get("WORKER_ENABLED", "0").lower() in ("1", "true", "yes")
+APP_INTERVAL = int(os.getenv("APP_INTERVAL", "7"))
+WORKER_ENABLED = os.getenv("WORKER_ENABLED", "0") == "1"
 
-# Пишем в stdout (systemd подхватит)
-logging.basicConfig(level=logging.INFO, format="%(message)s")
-log = logging.getLogger("APP")
-
-def _load_worker():
+def _run_worker_once():
     if not WORKER_ENABLED:
-        return None
+        return
     try:
-        from .worker import run_once
-        log.info("APP: worker enabled")
-        return run_once
+        from app.worker import run_once
+        run_once({})
     except Exception as e:
-        log.exception("APP: failed to import worker: %s", e)
-        return None
+        # Не валим сервис из-за воркера: просто лог
+        print(f"WORKER: error: {e}")
 
 def main():
-    run_worker_once = _load_worker()
-    log.info("APP: started")
+    print("APP: started")
     while True:
-        log.info("APP: heartbeat %s", datetime.datetime.now().isoformat())
-        if run_worker_once is not None:
-            try:
-                run_worker_once({})
-            except Exception as e:
-                log.exception("WORKER: error: %s", e)
-        time.sleep(INTERVAL)
+        print("APP: heartbeat", datetime.datetime.now().isoformat())
+        _run_worker_once()
+        time.sleep(APP_INTERVAL)
 
 if __name__ == "__main__":
     main()
