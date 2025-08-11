@@ -5,4 +5,4 @@ def main():
     print("APP: started")
     while True:
         print("APP: heartbeat", datetime.datetime.now().isoformat())
-        time.sleep(30)
+        time.sleep(10)
