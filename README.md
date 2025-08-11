@@ -3,4 +3,5 @@
 
 ## Документация
 - [YouTube → RuTube: бизнес-логика](docs/business_logic.md)
+- [Инфраструктура проекта](docs/infrastructure.md)
 
