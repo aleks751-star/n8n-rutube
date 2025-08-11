@@ -13,7 +13,7 @@ def _run_worker_once():
         from app.worker import run_once
         run_once({})
     except Exception as e:
-        # Не валим сервис из-за воркера: просто лог
+        # не валим сервис из-за воркера
         print(f"WORKER: error: {e}")
 
 def main():
