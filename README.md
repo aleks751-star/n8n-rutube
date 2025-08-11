@@ -1,2 +1,3 @@
 # n8n-rutube
- 11 .
+> Для агента: см. инфраструктурную инструкцию **[README.codex.md](README.codex.md)**.
+
