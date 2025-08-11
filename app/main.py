@@ -4,40 +4,36 @@ import time
 import datetime
 import logging
 
-def _as_bool(name: str, default: bool = False) -> bool:
-    v = os.environ.get(name)
-    if v is None:
-        return default
-    return v.strip().lower() in ("1", "true", "yes", "on")
+# Настройки из окружения
+INTERVAL = int(os.environ.get("APP_INTERVAL", "7"))
+WORKER_ENABLED = os.environ.get("WORKER_ENABLED", "0").lower() in ("1", "true", "yes")
+
+# Пишем в stdout (systemd подхватит)
+logging.basicConfig(level=logging.INFO, format="%(message)s")
+log = logging.getLogger("APP")
+
+def _load_worker():
+    if not WORKER_ENABLED:
+        return None
+    try:
+        from .worker import run_once
+        log.info("APP: worker enabled")
+        return run_once
+    except Exception as e:
+        log.exception("APP: failed to import worker: %s", e)
+        return None
 
 def main():
-    logging.basicConfig(level=logging.INFO)
-    print("APP: started")
-
-    # Интервал тиков (сек). По умолчанию 7 — как мы уже обкатывали.
-    interval = int(os.environ.get("APP_INTERVAL", "7"))
-
-    # Воркер выключен по умолчанию. Включается WORKER_ENABLED=1
-    worker_enabled = _as_bool("WORKER_ENABLED", False)
-    run_once = None
-
-    if worker_enabled:
-        try:
-            from app.worker import run_once as _run_once
-            run_once = _run_once
-            print("WORKER: enabled")
-        except Exception as e:
-            print(f"WORKER: failed to import: {e}")
-            worker_enabled = False
-
+    run_worker_once = _load_worker()
+    log.info("APP: started")
     while True:
-        print("APP: heartbeat", datetime.datetime.now().isoformat())
-        if worker_enabled and run_once:
+        log.info("APP: heartbeat %s", datetime.datetime.now().isoformat())
+        if run_worker_once is not None:
             try:
-                run_once({})
+                run_worker_once({})
             except Exception as e:
-                logging.getLogger("APP").warning("WORKER error: %s", e)
-        time.sleep(interval)
+                log.exception("WORKER: error: %s", e)
+        time.sleep(INTERVAL)
 
 if __name__ == "__main__":
     main()
