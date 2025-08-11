@@ -1,9 +1,18 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+
 echo "[repo] custom deploy hook running"
+date
 
-PY=python3
-[ -x ./.venv/bin/python ] && PY=./.venv/bin/python
+APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PY="$APP_DIR/.venv/bin/python"
+[[ -x "$PY" ]] || PY="$(command -v python3)"
 
-# Запускаем модуль (если модульный запуск не сработает — файл напрямую)
-$PY -m app || $PY app/main.py
+# Лёгкая пост-проверка, что код загружается
+"$PY" - <<'PY'
+import importlib
+import app
+print("post-deploy: import app OK")
+PY
+
+echo "[repo] done."
